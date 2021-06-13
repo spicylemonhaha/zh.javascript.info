@@ -23,6 +23,14 @@ function clear(elem) {
 }
 ```
 
+或者
+
+```js
+function clear(elem) {
+  elem.remove();
+}
+```        
+        
 还有一种更简单的方法，也可以达到我们所要的效果：
 
 ```js
