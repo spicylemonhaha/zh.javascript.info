@@ -77,43 +77,6 @@
 
 `event.target` 可能会等于 `this` —— 当点击事件发生在 `<form>` 元素上时，就会发生这种情况。
 
-## 停止冒泡
-
-冒泡事件从目标元素开始向上冒泡。通常，它会一直上升到 `<html>`，然后再到 `document` 对象，有些事件甚至会到达 `window`，它们会调用路径上所有的处理程序。
-
-但是任意处理程序都可以决定事件已经被完全处理，并停止冒泡。
-
-用于停止冒泡的方法是 `event.stopPropagation()`。
-
-例如，如果你点击 `<button>`，这里的 `body.onclick` 不会工作：
-
-```html run autorun height=60
-<body onclick="alert(`the bubbling doesn't reach here`)">
-  <button onclick="event.stopPropagation()">Click me</button>
-</body>
-```
-
-```smart header="event.stopImmediatePropagation()"
-如果一个元素在一个事件上有多个处理程序，即使其中一个停止冒泡，其他处理程序仍会执行。
-
-换句话说，`event.stopPropagation()` 停止向上移动，但是当前元素上的其他处理程序都会继续运行。
-
-有一个 `event.stopImmediatePropagation()` 方法，可以用于停止冒泡，并阻止当前元素上的处理程序运行。使用该方法之后，其他处理程序就不会被执行。
-```
-
-```warn header="不要在没有需要的情况下停止冒泡！"
-冒泡很方便。不要在没有真实需求时阻止它：除非是显而易见的，并且在架构上经过深思熟虑的。
-
-有时 `event.stopPropagation()` 会产生隐藏的陷阱，以后可能会成为问题。
-
-例如：
-
-1. 我们创建了一个嵌套菜单，每个子菜单各自处理对自己的元素的点击事件，并调用 `stopPropagation`，以便不会触发外部菜单。
-2. 之后，我们决定捕获在整个窗口上的点击，以追踪用户的行为（用户点击的位置）。有些分析系统会这样做。通常，代码会使用 `document.addEventListener('click'…)` 来捕获所有的点击。
-3. 我们的分析不适用于被 `stopPropagation` 所阻止点击的区域。太伤心了，我们有一个“死区”。
-
-通常，没有真正的必要去阻止冒泡。一项看似需要阻止冒泡的任务，可以通过其他方法解决。其中之一就是使用自定义事件，稍后我们会介绍它们此外，我们还可以将我们的数据写入一个处理程序中的 `event` 对象，并在另一个处理程序中读取该数据，这样我们就可以向父处理程序传递有关下层处理程序的信息。
-```
 
 
 ## 捕获
@@ -198,6 +161,50 @@ elem.addEventListener("click", e => alert(1)); // 会先被触发
 elem.addEventListener("click", e => alert(2));
 ```
 ````
+
+
+
+## 停止传播
+
+冒泡事件从目标元素开始向上冒泡。通常，它会一直上升到 `<html>`，然后再到 `document` 对象，有些事件甚至会到达 `window`，它们会调用路径上所有的处理程序。
+
+捕获事件相反，从`window`开始向下传播，一直下降到目标元素，它们同样会调用路径上所有分配了 `addEventListener(..., true)` 的处理程序。
+
+但是任意处理程序都可以决定事件已经被完全处理，并停止传播（冒泡 + 捕获）。
+
+用于停止传播的方法是 `event.stopPropagation()`。
+
+例如，如果你点击 `<button>`，这里的 `body.onclick` 不会工作：
+
+```html run autorun height=60
+<body onclick="alert(`the bubbling doesn't reach here`)">
+  <button onclick="event.stopPropagation()">Click me</button>
+</body>
+```
+
+同样的，如果在捕获阶段使用event.stopPropagation()方法，它也会停止传播。
+
+```smart header="event.stopImmediatePropagation()"
+如果一个元素在一个事件上有多个处理程序，即使其中一个停止传播，其他处理程序仍会执行。
+
+换句话说，`event.stopPropagation()` 停止传播，但是当前元素上的其他处理程序都会继续运行。
+
+有一个 `event.stopImmediatePropagation()` 方法，可以用于停止传播，并阻止当前元素上的处理程序运行。使用该方法之后，其他处理程序就不会被执行。
+```
+
+```warn header="不要在没有需要的情况下使用停止冒泡！"
+冒泡很方便。不要在没有真实需求时阻止它：除非是显而易见的，并且在架构上经过深思熟虑的。
+
+有时 `event.stopPropagation()` 会产生隐藏的陷阱，以后可能会成为问题。
+
+例如：
+
+1. 我们创建了一个嵌套菜单，每个子菜单各自处理对自己的元素的点击事件，并调用 `stopPropagation`，以便不会触发外部菜单。
+2. 之后，我们决定捕获在整个窗口上的点击，以追踪用户的行为（用户点击的位置）。有些分析系统会这样做。通常，代码会使用 `document.addEventListener('click'…)` 来捕获所有的点击。
+3. 我们的分析不适用于被 `stopPropagation` 所阻止点击的区域。太伤心了，我们有一个“死区”。
+
+通常，没有真正的必要去阻止传播。一项看似需要阻止传播的任务，可以通过其他方法解决。其中之一就是使用自定义事件，稍后我们会介绍它们此外，我们还可以将我们的数据写入一个处理程序中的 `event` 对象，并在另一个处理程序中读取该数据，这样我们就可以向父处理程序传递有关下层处理程序的信息。
+```
 
 
 ## 总结
